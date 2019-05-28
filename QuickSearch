@@ -1,0 +1,186 @@
+using System;
+using System.Collections.Generic;
+using System.ComponentModel;
+using System.Data;
+using System.Drawing;
+using System.Linq;
+using System.Text;
+using System.Windows.Forms;
+using System.IO;
+
+namespace QuickSearch
+{
+    public partial class Form1 : Form
+    {
+        public Form1()
+        {
+            InitializeComponent();
+        }
+
+        private void CmbRead_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            try
+            {
+                string Product = CmbRead.Text;
+                StreamReader str = new StreamReader("D:\\SaleInformation\\" + Product + ".txt");
+                TxtReadText.Text = str.ReadToEnd();
+                str.Close();
+            }
+            catch (Exception ex)
+            {
+
+                throw;
+            }
+
+        }
+
+        private void BtnWrite_Click(object sender, EventArgs e)
+        {
+            string Product = CmbRead.Text;
+            StreamWriter str = new StreamWriter("D:\\SaleInformation\\" + Product + ".txt", true);
+            str.WriteLine(TxtUserText.Text);
+            str.Close();
+            CmbRead_SelectedIndexChanged(null, null);
+            DirectoryInfo Dio = new DirectoryInfo("D:\\SaleInformation\\");
+            FileInfo F = Dio.GetFiles().ToArray().Where(f => f.Name.StartsWith(Product)).First();
+            CreateIndex(F.FullName);
+
+        }
+private void BtnCreateIndex_Click(object sender, EventArgs e)
+        {
+            string IndexPath = "D:\\SaleInformation\\" +CmbRead.Text + TxtIndexFile.Text + ".idx";
+            if (File.Exists(IndexPath))
+            {
+                MessageBox.Show("The Index Exists.");
+                return;
+
+            }
+            CreateIndex(IndexPath);
+
+        }
+
+        private void CreateIndex(string path)
+        {
+            StreamReader str = null;
+            if (CmbRead.Text != "")
+            {
+                str = new StreamReader("D:\\SaleInformation\\" + CmbRead.Text + ".txt");
+            }
+
+            else
+            {
+                return;
+            }
+            HashSet<string> SoldedProduct = new HashSet<string>();
+
+            int index = 0;
+            while (str.Peek() != -1)
+            {
+                //Tehran,90
+                SoldedProduct.Add(str.ReadLine().Split(',')[0].ToString() + "," + index.ToString());
+                index++;
+            }
+            str.Close();
+            StreamWriter stw = new StreamWriter(path);
+            var CityIndex = SoldedProduct.OrderBy(o => o.ToString());
+            var Cities = from C in CityIndex select new { name = C.ToString().Split(',')[0].ToString() };
+            var NameList = Cities.Distinct().ToArray().Distinct();
+            var CityIndexList = CityIndex.ToList();
+            string Indexvalue = "";
+            foreach (var item in NameList)
+            {
+                string cityrecords = item.name + ":";
+                for (int i = 0; i < CityIndexList.Count; i++)
+                {
+                    
+if (item.name == CityIndexList[i].Split(',')[0])
+                    {
+                        cityrecords += CityIndexList[i].Split(',')[1] + ",";
+                    }
+}
+                Indexvalue += cityrecords + "#";
+            }
+            stw.WriteLine(Indexvalue);
+            stw.Close();
+        }
+
+        private void BtnSearch_Click(object sender, EventArgs e)
+        {
+            DirectoryInfo Dio = new DirectoryInfo("D:\\SaleInformation\\");
+
+            var indexfile = Dio.GetFiles().Where(s => s.Name.StartsWith(CmbSearch.Text));
+
+            if (indexfile.Count() > 0)
+            {
+                SearchwithIndex(TxtSearchValue.Text, indexfile.First().FullName);
+            }
+            else
+            {
+                Search(CmbSearch.Text, TxtSearchValue.Text);
+            }
+        }
+
+        private void Search(string Product, string Search)
+        {
+            StreamReader str = new StreamReader("D:\\SaleInformation\\" + Product + ".txt");
+            LstResault.Items.Clear();
+            while (str.Peek() != -1)
+            {
+                string linetext = str.ReadLine();
+                if (linetext.StartsWith(Search))
+                {
+                    LstResault.Items.Add(linetext);
+                }
+            }
+        }
+void SearchwithIndex(string searchvalue, string indexfile)
+        {
+            try
+            {
+                StreamReader str = new StreamReader(indexfile);
+                string[] cities = str.ReadToEnd().Split('#'); 
+                str.Close();
+                string[] recordno = null;
+
+                int count = cities.Where(s => s.StartsWith(searchvalue)).Count();
+                if (count == 0)
+                {
+                    MessageBox.Show("City None Exists."); 
+                    return;
+                }
+                for (int i = 0; i < cities.Length; i++)
+                {
+                    if (cities[i].StartsWith(searchvalue))
+                    {
+                        string s = searchvalue + ":";
+                        recordno = cities[i].Substring(s.Length).Split(',');
+                        break;
+                    }
+                }
+                str = new StreamReader("D:\\SaleInformation\\" + CmbSearch.Text + ".txt");
+                LstResault.Items.Clear();
+                int index = 0;
+                while (str.Peek() != -1)
+                {
+                    string s = str.ReadLine();
+                    for (int i = 0; i < recordno.Length - 1; i++)
+                    {
+                        if (int.Parse(recordno[i]) == index)
+                        {
+                            LstResault.Items.Add(s);
+                        }
+                    }
+                    index++;
+                }
+                str.Close();
+            }
+            catch (Exception ex)
+            {
+
+                MessageBox.Show(ex.Message);
+            }
+
+
+        }
+    }
+}
