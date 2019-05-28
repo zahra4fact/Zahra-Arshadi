@@ -1,0 +1,74 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using System.Data;
+using System.Data.SqlClient;
+
+namespace DB
+{
+    public class User:Orginal
+    {
+
+        public DataTable getUserByUsername(String userName)
+        {
+            string strQuery = "select * from tblUser where Name='" + userName + "'";
+            return dbQuery(strQuery);
+
+        }
+        public DataTable selectOne(int UserId)
+        {
+            string strSelection = "select * from  tblUser where UserId= " + UserId;
+            return dbQuery(strSelection);
+        }
+        public DataTable selectUser()
+        {
+            string strSelectUser = "SELECT *  FROM tblUser INNER JOIN UserTypes ON tblUser.UserType=UserTypes.TypeId";
+            return dbQuery(strSelectUser);
+        }
+
+        //public bool checkingUser(string Name, string pass)
+        //{
+        //    //string query = "chekingUser";
+        //    //com = new SqlCommand(query);
+        //    //string queryInsert = "insert into tblStudents (FirstName,LastName,stdNo)";
+        //    //queryInsert += "values('" + firstName + "','" + lastName + "','" + stdNum + "')";
+        //    //CommandInsert(queryInsert);
+        //    //command.CommandType = CommandType.StoredProcedure;
+        //    //command.Parameters.AddWithValue("@stdId", 0);
+        //    //command.Parameters[0].Direction = ParameterDirection.ReturnValue;
+        //    //command.Parameters.AddWithValue("@Username", Name);
+        //    //command.Parameters.AddWithValue("@Password", pass);
+        //    //int usercount = (Int32)command.ExecuteScalar();
+        //    //if (usercount == 1)
+        //    //    return true;
+        //    //else
+        //    //    return false;
+        //}
+        public DataTable typeUser()
+        {
+            string tUser = "select * from UserTypes ";
+            return dbQuery(tUser);
+
+        }
+        public string insert(string Name, string pass, int usertype,string email,string salt)
+        {
+            command.CommandType = CommandType.StoredProcedure;
+
+            //command.Parameters.AddWithValue("@stdId", 0);
+            //command.Parameters[0].Direction = ParameterDirection.ReturnValue;
+
+            command.Parameters.AddWithValue("@Name", Name);
+            command.Parameters.AddWithValue("@password", pass);
+            command.Parameters.AddWithValue("@typeuser", usertype);
+            command.Parameters.AddWithValue("@mail", email);
+            command.Parameters.AddWithValue("@salt", salt);
+
+            if (sqlCommand("insert") == true)
+                return "insert succesfully";
+            else
+                return "try again";
+        }
+    }
+}
