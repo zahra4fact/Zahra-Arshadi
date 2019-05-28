@@ -1,0 +1,84 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using System.Data;
+using System.Data.SqlClient;
+
+namespace DB
+{
+    public class Orginal
+    {
+        private string connectionStr = "Data Source=.;Initial Catalog=ProjectOfSite;Integrated Security=True";
+        private SqlConnection sqlconnect;
+        protected SqlCommand command;
+        public Orginal()
+        {
+            command = new SqlCommand();
+        }
+        private bool connection()
+        {
+            try
+            {
+                sqlconnect = new SqlConnection(connectionStr);
+                return true;
+
+            }
+            catch(Exception e)
+            {
+
+            }
+            return false;
+        }
+        protected bool sqlCommand(string query)
+        {
+            try
+            {
+                if(connection()==true)
+                {
+                    sqlconnect.Open();
+                    command.CommandText = query;
+                    command.Connection = sqlconnect;
+                    command.ExecuteNonQuery();
+                    return true;
+                }
+
+            }
+            catch(Exception e)
+            {
+
+            }
+            finally
+            {
+                if (sqlconnect.State == ConnectionState.Open)
+                    sqlconnect.Close();
+            }
+            return false;
+        }
+        protected DataTable dbQuery(string query)
+        {
+            try
+            {
+                if (connection() == true)
+                {
+                    DataTable table = new DataTable();
+                    sqlconnect.Open();
+                    command.CommandText = query;
+                    command.Connection = sqlconnect;
+                    SqlDataAdapter data = new SqlDataAdapter(command);
+                    data.Fill(table);
+                    return table;
+                }
+
+            }
+            catch(Exception e)
+            {
+
+            }
+            return null;
+        }
+            
+       
+    }
+}
